@@ -86,7 +86,7 @@ def train_model(args):
         acc = test_acc(model, test_dataloader, args)
         print('Epoch', epoch, 'loss: %.4f' % total_loss, 'cs_loss: %.4f' % similarity_loss, 'test accuracy:%.4f' % acc)
 
-        if epoch % args["dataset"]["save_every"] == 0:
+        if epoch % args["dataset"]["train"]["save_every"] == 0:
             torch.save(model.state_dict(),
                        os.path.join(args['dataset']['train']['weight_save_path'], 'model_%.3d.pth' % epoch))
     torch.save(model.state_dict(), os.path.join(args['dataset']['train']['weight_save_path'], 'model_last.pth'))
@@ -196,12 +196,18 @@ def test_acc(model, loader, args):
         inputs, labels = input_data
         inputs, labels = inputs.to(args['device']), labels.long().to(args['device'])
 
-        outputs, _, _ = model(inputs)
+        outputs = model(inputs, eval=True)
+        x = model.layer4(outputs)
+        x = model.avgpool(x)
+        x = torch.flatten(x, 1)
+        outputs = model.fc(x)
         out = outputs.data
-        # total += labels.size(0)
 
-        batch_num_correct = (out == labels).type(torch.uint8).sum().item()
-        correct += batch_num_correct
+
+        if labels == 1 and out >= 0.5:
+            correct += 1
+        elif labels == 0 and out <= 0.5:
+            correct += 1
 
     model.train()
 
