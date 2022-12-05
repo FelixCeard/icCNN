@@ -1,0 +1,21 @@
+task: train # currently only train
+devices: cuda # cuda/cpu
+model:
+  type: ResNet18 # (ResNet18, ResNet34, ResNet50, ResNet101, ResNet152)
+  num_classes: 1 # binary classification
+#  pretrained_path: "..." # REMOVE for no pretrained model
+dataset:
+  train:
+    dataloader: dataloader.twoClassDataset.TwoClassDataset
+    args:
+      path_class_one: C:\Users\felix\PycharmProjects\icCNN\data\cats_and_dogs\cats
+      path_class_two: C:\Users\felix\PycharmProjects\icCNN\data\cats_and_dogs\dogs
+      resize: 256,
+      logs: true
+  test:
+    dataloader: dataloader.twoClassDataset.TwoClassDataset
+    args:
+      path_class_one: C:\Users\felix\PycharmProjects\icCNN\data\cats_and_dogs\cats
+      path_class_two: C:\Users\felix\PycharmProjects\icCNN\data\cats_and_dogs\dogs
+      resize: 256,
+      logs: true
