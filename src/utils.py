@@ -1,5 +1,6 @@
 import importlib
 import os
+from datetime import datetime
 
 from models.resnet import ResNet18, ResNet34, ResNet50, ResNet101, ResNet152
 
@@ -39,6 +40,8 @@ def validate_yaml_config(args):
     # orga stuff
     if "task" not in args:
         raise KeyError("Expected the config file to contain the type of task with at the key 'task'")
+    if "device" not in args:
+        raise KeyError("Expected the config file to contain the type of device with at the key 'device'")
 
     # model
     if "model" not in args:
@@ -69,3 +72,30 @@ def validate_yaml_config(args):
         if "dataloader" not in args["dataset"]["test"]:
             raise KeyError(
                 "No Dataloader path has been included for the test set. The GitHub repo has an example how such input would look.")
+
+    # optimizer
+    if "optimizer" not in args:
+        args['optimizer'] = {}
+        args['optimizer']['lr'] = 0.00001
+
+    # training
+    if "epochs" not in args["dataset"]["train"]:
+        raise KeyError("No epoch was provided.")
+
+    for k in ['batch_size', 'shuffle', 'num_workers']:
+        if 'test' in args['dataset']:
+            if k not in args['dataset']['train']:
+                raise KeyError(f"Expected key '{k}' to be present in dataset->test")
+        if k not in args['dataset']['train']:
+            raise KeyError(f"Expected key '{k}' to be present in dataset->train")
+
+    if 'path_weight_save' not in args['dataset']['train']:
+        raise KeyError(f"Expected key 'path_weight_save' to be present in dataset->train")
+    if 'save_every' not in args['dataset']['train']:
+        raise KeyError(f"Expected key 'save_every' to be present in dataset->train")
+
+    now = datetime.now()  # current date and time
+    date_time = now.strftime("%m-%d-%Y_%H-%M-%S")
+    weight_save_path = os.path.join(args['dataset']['train']['path_weight_save'], date_time)
+    args['dataset']['train']['weight_save_path'] = weight_save_path
+    os.makedirs(weight_save_path, exist_ok=False)

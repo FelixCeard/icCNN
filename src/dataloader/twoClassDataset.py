@@ -6,10 +6,12 @@ import PIL
 import albumentations as A
 import numpy as np
 import torch
+import torchvision
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 from PIL.Image import Image
 from torch.utils.data import Dataset
+import torchvision.transforms as T
 
 
 class TwoClassDataset(Dataset):
@@ -24,7 +26,7 @@ class TwoClassDataset(Dataset):
         if self.logs:
             print(message)
 
-    def __init__(self, path_class_one: str, path_class_two: str, resize=256, max_num_images=-1, logs=True):
+    def __init__(self, path_class_one: str, path_class_two: str, resize=(256, 256), max_num_images=-1, logs=True):
         self.class_one_path = path_class_one
         self.class_two_path = path_class_two
         self.resize_size = resize
@@ -72,18 +74,23 @@ class TwoClassDataset(Dataset):
         return self.size
 
     def preprocess(self, img):
-        s = min(img.size)
+        # s = min(img.size)
+        #
+        # if s < self.resize_size:
+        #     raise ValueError(
+        #         f'Image is smaller than the resized size. Expected at least {self.resize_size} width (or height) but got {s}')
+        #
+        # r = self.resize_size / s
+        # s = (round(r * img.size[1]), round(r * img.size[0]))
+        # img = TF.resize(img, s, interpolation=PIL.Image.LANCZOS)
+        # img = TF.center_crop(img, output_size=2 * [self.resize_size])
+        return T.ToTensor()(img.resize((self.resize_size, self.resize_size)))
+        # transform for rectangular resize
+        # transform = T.Resize(self.resize_size)
 
-        if s < self.resize_size:
-            raise ValueError(
-                f'Image is smaller than the resized size. Expected at least {self.resize_size} width (or height) but got {s}')
-
-        r = self.resize_size / s
-        s = (round(r * img.size[1]), round(r * img.size[0]))
-        img = TF.resize(img, s, interpolation=PIL.Image.LANCZOS)
-        img = TF.center_crop(img, output_size=2 * [self.resize_size])
-        img = torch.unsqueeze(T.ToTensor()(img), 0)
-        return img
+        # return torchvision.transforms.functional.resize(img, self.resize_size)
+        # return transform(img)
+        # return img
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
