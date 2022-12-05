@@ -204,10 +204,11 @@ def test_acc(model, loader, args):
         out = outputs.data
 
 
-        if labels == 1 and out >= 0.5:
-            correct += 1
-        elif labels == 0 and out <= 0.5:
-            correct += 1
+        for i in range(out.shape[0]):
+            if labels[i] == 1 and out[i] >= 0.5:
+                correct += 1
+            elif labels[i] == 0 and out[i] <= 0.5:
+                correct += 1
 
     model.train()
 
